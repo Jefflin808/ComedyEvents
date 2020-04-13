@@ -64,34 +64,111 @@ namespace ComedyEvents.Services
             return await query.ToArrayAsync();
         }
 
-        public Task<Event> GetEvent(int eventId, bool includeGigs = false)
+        public async Task<Event> GetEvent(int eventId, bool includeGigs = false)
         {
-            throw new NotImplementedException();
+            _logger.LogInformation($"Getting event for eventId {eventId}");
+
+            IQueryable<Event> query = _eventContext.Events
+                                    .Include(e => e.Venue);
+
+            if (includeGigs)
+            {
+                query = query.Include(e => e.Gigs)
+                        .ThenInclude(g => g.Comedian);
+            }
+
+            query = query.Where(e => e.EventId == eventId);
+
+            return await query.FirstOrDefaultAsync();
         }
 
-        public Task<Event[]> GetEvents(bool includeGigs = false)
+        public async Task<Event[]> GetEvents(bool includeGigs = false)
         {
-            throw new NotImplementedException();
+            _logger.LogInformation($"Getting events");
+
+            IQueryable<Event> query = _eventContext.Events
+                                    .Include(e => e.Venue);
+
+            if (includeGigs)
+            {
+                query = query.Include(e => e.Gigs)
+                        .ThenInclude(g => g.Comedian);
+            }
+
+            query = query.OrderBy(e => e.EventDate);
+
+            return await query.ToArrayAsync();
         }
 
-        public Task<Event[]> GetEventsByDate(DateTime date, bool includeGigs = false)
+        public async Task<Event[]> GetEventsByDate(DateTime date, bool includeGigs = false)
         {
-            throw new NotImplementedException();
+            _logger.LogInformation($"Getting events for date {date}");
+
+            IQueryable<Event> query = _eventContext.Events
+                                    .Include(e => e.Venue);
+
+            if (includeGigs)
+            {
+                query = query.Include(e => e.Gigs)
+                        .ThenInclude(g => g.Comedian);
+            }
+
+            query = query.OrderBy(e => e.EventDate)
+                    .Where(e => e.EventDate == date);
+
+            return await query.ToArrayAsync();
         }
 
-        public Task<Gig> GetGigByEvent(int gigId, int eventId, bool includeComedians = false)
+        public async Task<Gig> GetGig(int gigId, bool includeComedians = false)
         {
-            throw new NotImplementedException();
+            _logger.LogInformation($"Getting gig with id {gigId}");
+            
+            IQueryable<Gig> query = _eventContext.Gigs;
+
+            if(includeComedians)
+            {
+                query = query.Include(g => g.Comedian);
+            }
+
+            query = query.Where(g => g.GigId == gigId).Include(g => g.Event);
+
+            return await query.FirstOrDefaultAsync();
         }
 
-        public Task<Gig[]> GetGigsByEvent(int eventId, bool includeComedians = false)
+        public async Task<Gig[]> GetGigsByEvent(int eventId, bool includeComedians = false)
         {
-            throw new NotImplementedException();
+            _logger.LogInformation($"Getting gigs for event {eventId}");
+
+            IQueryable<Gig> query = _eventContext.Gigs;
+
+            if (includeComedians)
+            {
+                query = query.Include(g => g.Comedian);
+            }
+
+            query = query.Where(g => g.Event.EventId == eventId)
+                    .Include(g => g.Event)
+                    .OrderByDescending(g => g.GigHeadline);
+
+            return await query.ToArrayAsync();
         }
 
-        public Task<Gig[]> GetGigsByVenue(int venueId, bool includeComedians = false)
+        public async Task<Gig[]> GetGigsByVenue(int venueId, bool includeComedians = false)
         {
-            throw new NotImplementedException();
+            _logger.LogInformation($"Getting gigs for venue {venueId}");
+
+            IQueryable<Gig> query = _eventContext.Gigs;
+
+            if (includeComedians)
+            {
+                query = query.Include(g => g.Comedian);
+            }
+
+            query = query.Where(g => g.Event.Venue.VenueId == venueId)
+                    .Include(g => g.Event.Venue)
+                    .OrderByDescending(g => g.GigHeadline);
+
+            return await query.ToArrayAsync();
         }
 
         public async Task<bool> Save()
