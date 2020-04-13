@@ -1,4 +1,6 @@
-﻿using ComedyEvents.Services;
+﻿using ComedyEvents.Models;
+using ComedyEvents.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -17,5 +19,22 @@ namespace ComedyEvents.Controllers
         {
             _eventRepository = eventRepository;
         }
+
+        [HttpGet]
+        public async Task<ActionResult<Event[]>> Get(bool includeGigs = false)
+        {
+            try
+            {
+                var results = await _eventRepository.GetEvents(includeGigs);
+                return Ok(results);
+            }
+            catch(Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+        }
+
+
+
     }
 }
