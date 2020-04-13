@@ -28,12 +28,18 @@ namespace ComedyEvents
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseMvc();
+            //app.UseMvc();
 
-            //app.Run(async (context) =>
-            //{
-            //    await context.Response.WriteAsync("Hello World!");
-            //});
+            app.Use(async (context, next) =>
+            {//insert my own middleware
+                await context.Response.WriteAsync("Hello Jianfeng \n");
+                await next();
+            });
+
+            app.Run(async (context) =>
+            {
+                await context.Response.WriteAsync("Hello World");
+            });
         }
     }
 }
