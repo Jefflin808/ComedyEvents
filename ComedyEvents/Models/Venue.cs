@@ -12,7 +12,7 @@ namespace ComedyEvents.Models
         public string Street { get; set; }
         public string City { get; set; }
         public string State { get; set; }
-        public string Zipcode { get; set; }
+        public string ZipCode { get; set; }
         public int Seating { get; set; }
         public bool ServesAlcohol { get; set; }
     }
