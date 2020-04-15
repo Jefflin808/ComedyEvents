@@ -38,7 +38,7 @@ namespace ComedyEvents.Controllers
 
                 return Ok(mappedEntities);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
             }
@@ -100,9 +100,60 @@ namespace ComedyEvents.Controllers
                     return Created(location, _mapper.Map<EventDto>(mappedEntity));
                 }
             }
-            catch(Exception ex)
+            catch (Exception)
             {
-                return this.StatusCode(StatusCodes.Status500InternalServerError, ex.InnerException.Message);
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+
+            return BadRequest();
+        }
+
+        [HttpPut("{eventId}")]
+        public async Task<ActionResult<EventDto>> Put(int eventId, EventDto dto)
+        {
+            try
+            {
+                var oldEvent = await _eventRepository.GetEvent(eventId);
+                if (oldEvent == null)
+                    return NotFound($"Could not find event with id {eventId}");
+
+                var newEvent = _mapper.Map(dto, oldEvent);
+                _eventRepository.Update(newEvent);
+
+                if (await _eventRepository.Save())
+                {
+                    return NoContent();
+                }
+
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+
+            return BadRequest();
+        }
+
+        [HttpDelete("{eventId}")]
+        public async Task<ActionResult<EventDto>> Delete(int eventId)
+        {
+            try
+            {
+                var oldEvent = await _eventRepository.GetEvent(eventId);
+                if (oldEvent == null)
+                    return NotFound($"Could not find event with id {eventId}");
+
+                _eventRepository.Delete(oldEvent);
+
+                if (await _eventRepository.Save())
+                {
+                    return NoContent();
+                }
+
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
             }
 
             return BadRequest();
