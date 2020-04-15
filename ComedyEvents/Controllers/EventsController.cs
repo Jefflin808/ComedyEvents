@@ -4,6 +4,7 @@ using ComedyEvents.Models;
 using ComedyEvents.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,11 +18,13 @@ namespace ComedyEvents.Controllers
     {
         private readonly IEventRepository _eventRepository;
         private readonly IMapper _mapper;
+        private readonly LinkGenerator _linkGenerator;
 
-        public EventsController(IEventRepository eventRepository, IMapper mapper)
+        public EventsController(IEventRepository eventRepository, IMapper mapper, LinkGenerator linkGenerator)
         {
             _eventRepository = eventRepository;
             _mapper = mapper;
+            _linkGenerator = linkGenerator;
         }
 
         [HttpGet]
@@ -79,6 +82,30 @@ namespace ComedyEvents.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<ActionResult<EventDto>> Post([FromBody]EventDto dto)
+        {
+            try
+            {
+                var mappedEntity = _mapper.Map<Event>(dto);
+                _eventRepository.Add(mappedEntity);
 
+                if (await _eventRepository.Save())
+                {
+                    //old method to return created link
+                    //return Created($"/api/events/{mappedEntity.EventId}", _mapper.Map<EventDto>(mappedEntity));
+
+                    //use LinkGenerator >= .net core 2.2
+                    var location = _linkGenerator.GetPathByAction("Get", "Events", new { mappedEntity.EventId });
+                    return Created(location, _mapper.Map<EventDto>(mappedEntity));
+                }
+            }
+            catch(Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, ex.InnerException.Message);
+            }
+
+            return BadRequest();
+        }
     }
 }
