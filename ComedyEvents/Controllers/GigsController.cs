@@ -45,5 +45,45 @@ namespace ComedyEvents.Controllers
             }
         }
 
+        [HttpGet("searchByEvent")]
+        public async Task<ActionResult<GigDto[]>> GetGigsByEvent(int eventId, bool includeComedian = false)
+        {
+            try
+            {
+                var results = await _eventRepository.GetGigsByEvent(eventId, includeComedian);
+
+                if (!results.Any()) return NotFound();
+
+                var mappedEntities = _mapper.Map<GigDto[]>(results);
+
+                return Ok(mappedEntities);
+
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+        }
+
+        [HttpGet("searchByVenue")]
+        public async Task<ActionResult<GigDto[]>> GetGigsByVenue(int venueId, bool includeComedian = false)
+        {
+            try
+            {
+                var results = await _eventRepository.GetGigsByVenue(venueId, includeComedian);
+
+                if (!results.Any()) return NotFound();
+
+                var mappedEntities = _mapper.Map<GigDto[]>(results);
+
+                return Ok(mappedEntities);
+
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+        }
+
     }
 }
