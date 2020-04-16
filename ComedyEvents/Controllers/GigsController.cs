@@ -108,5 +108,57 @@ namespace ComedyEvents.Controllers
             return BadRequest();
         }
 
+        [HttpPut("{gigId}")]
+        public async Task<ActionResult> Put(int gigId, GigDto dto)
+        {
+            try
+            {
+                var oldGig = await _eventRepository.GetGig(gigId);
+
+                if (oldGig == null) return NotFound($"Could not find Gig with id {gigId}");
+
+                var newGig = _mapper.Map(dto, oldGig);
+
+                _eventRepository.Update(newGig);
+
+                if (await _eventRepository.Save())
+                {
+                    return NoContent();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, ex.InnerException.Message);
+            }
+
+            return BadRequest();
+        }
+
+        [HttpDelete("{gigId}")]
+        public async Task<ActionResult<ComedianDto>> Delete(int gigId)
+        {
+            try
+            {
+                var oldGig = await _eventRepository.GetGig(gigId);
+                if (oldGig == null)
+                    return NotFound($"Could not find Gig with id {gigId}");
+
+                _eventRepository.Delete(oldGig);
+
+                if (await _eventRepository.Save())
+                {
+                    return NoContent();
+                }
+
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+
+            return BadRequest();
+        }
+
     }
 }
