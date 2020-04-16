@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ComedyEvents.Dto;
+using ComedyEvents.Models;
 using ComedyEvents.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -83,6 +84,28 @@ namespace ComedyEvents.Controllers
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
             }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<GigDto>> Post([FromBody]GigDto dto)
+        {
+            try
+            {
+                var mappedEntity = _mapper.Map<Gig>(dto);
+                _eventRepository.Add(mappedEntity);
+
+                if (await _eventRepository.Save())
+                {
+                    var location = _linkGenerator.GetPathByAction("Get", "Gigs", new { mappedEntity.GigId });
+                    return Created(location, _mapper.Map<GigDto>(mappedEntity));
+                }
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+
+            return BadRequest();
         }
 
     }
